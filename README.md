@@ -125,7 +125,7 @@ systemctl enable clash
 ## 配置防火墙转发规则(iptables)
 1. 如果无需代理udp流量，请注释掉脚本中`配置udp透明代理`部分内容
 2. 如果需要代理udp流量，请前往[syno-iptables](https://github.com/sjtuross/syno-iptables)下载/自行编译群晖缺失的iptables组件，并按上述仓库教程进行安装(无需运行加载命令，加载命令已经包含在脚本中)
-3. 创建计划任务启动时自动配置防火墙
+3. 创建计划任务：启动时自动配置防火墙
 * 转到：DSM>控制面板>计划任务
 * 新增>触发的任务>用户定义的脚本
   * 常规
