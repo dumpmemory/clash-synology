@@ -9,7 +9,7 @@
 
 请将群晖设置为静态IP
 
-本文以armv8架构为例，且clash的配置目录为`/volume1/homes/clash`
+本文以armv8（aarch64）架构为例，且clash的配置目录为`/volume1/homes/clash`
 
 ## 安装clash
 
