@@ -123,9 +123,8 @@ systemctl enable clash
 ```
 
 ## 配置防火墙转发规则(iptables)
-1. 如果无需代理udp流量，请注释掉脚本中`配置udp透明代理`部分内容
-2. 如果需要代理udp流量，请前往[syno-iptables](https://github.com/sjtuross/syno-iptables)下载/自行编译群晖缺失的iptables组件，并按上述仓库教程进行安装(无需运行加载命令，加载命令已经包含在脚本中)
-3. 创建计划任务：启动时自动配置防火墙
+1. 如果需要代理udp流量,请取消脚本中`配置udp透明代理`部分内容的注释，请前往[syno-iptables](https://github.com/sjtuross/syno-iptables)下载/自行编译群晖缺失的iptables组件，并按上述仓库教程进行安装(无需运行加载命令，加载命令已经包含在脚本中)
+2. 创建计划任务：启动时自动配置防火墙
 * 转到：DSM>控制面板>计划任务
 * 新增>触发的任务>用户定义的脚本
   * 常规
@@ -169,31 +168,6 @@ iptables -t nat -A PREROUTING -p tcp -j clash
 ## fake-ip tcp规则添加
 iptables -t nat -A OUTPUT -p tcp -d "$fake_ip_range" -j REDIRECT --to-port "$proxy_port"
 
-# 配置udp透明代理
-## 加载模块
-insmod /lib/modules/nf_defrag_ipv6.ko
-insmod /lib/modules/xt_TPROXY.ko
-## 设置防火墙参数
-ip rule add fwmark 1 table 100
-ip route add local default dev lo table 100
-## 在mangle表中新建clash规则链
-iptables -t mangle -N clash
-## 排除环形地址与保留地址
-iptables -t mangle -A clash -d 0.0.0.0/8 -j RETURN
-iptables -t mangle -A clash -d 10.0.0.0/8 -j RETURN
-iptables -t mangle -A clash -d 127.0.0.0/8 -j RETURN
-iptables -t mangle -A clash -d 169.254.0.0/16 -j RETURN
-iptables -t mangle -A clash -d 172.16.0.0/12 -j RETURN
-iptables -t mangle -A clash -d 192.168.0.0/16 -j RETURN
-iptables -t mangle -A clash -d 224.0.0.0/4 -j RETURN
-iptables -t mangle -A clash -d 240.0.0.0/4 -j RETURN
-## 重定向udp流量到clash 代理端口
-iptables -t mangle -A clash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark 1
-## 拦截外部udp数据并交给clash规则链处理
-iptables -t mangle -A PREROUTING -p udp -j clash
-## fake-ip udp规则添加
-iptables -t mangle -A OUTPUT -p udp -d "$fake_ip_range" -j MARK --set-mark 1
-
 # DNS 相关配置
 ## 拦截外部upd的53端口流量交给clash_dns规则链处理
 iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-port "$dns_port"
@@ -202,6 +176,25 @@ iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-port "$dns_port
 # 这并不能保证 ping 结果有效(clash 不支持转发 ICMP), 只是让它有返回结果而已
 # --to-destination 设置为一个可达的地址即可
 iptables -t nat -A PREROUTING -p icmp -d "$fake_ip_range" -j DNAT --to-destination 192.168.1.1
+
+# 配置udp透明代理
+
+#insmod /lib/modules/nf_defrag_ipv6.ko
+#insmod /lib/modules/xt_TPROXY.ko
+#ip rule add fwmark 1 table 100
+#ip route add local default dev lo table 100
+#iptables -t mangle -N clash
+#iptables -t mangle -A clash -d 0.0.0.0/8 -j RETURN
+#iptables -t mangle -A clash -d 10.0.0.0/8 -j RETURN
+#iptables -t mangle -A clash -d 127.0.0.0/8 -j RETURN
+#iptables -t mangle -A clash -d 169.254.0.0/16 -j RETURN
+#iptables -t mangle -A clash -d 172.16.0.0/12 -j RETURN
+#iptables -t mangle -A clash -d 192.168.0.0/16 -j RETURN
+#iptables -t mangle -A clash -d 224.0.0.0/4 -j RETURN
+#iptables -t mangle -A clash -d 240.0.0.0/4 -j RETURN
+#iptables -t mangle -A clash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark 1
+#iptables -t mangle -A PREROUTING -p udp -j clash
+#iptables -t mangle -A OUTPUT -p udp -d "$fake_ip_range" -j MARK --set-mark 1
 ```
 
 ## 一键更新clash脚本（测试）
