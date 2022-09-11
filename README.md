@@ -124,10 +124,9 @@ WantedBy=multi-user.target
 
 * 按`ESC`，键入`:wq`退出
 
-2. 立即运行并设置系统启动时运行
+2. 运行clash
 ```bash
 systemctl start clash
-systemctl enable clash
 ```
 
 ## 创建计划任务
