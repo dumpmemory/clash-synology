@@ -15,7 +15,7 @@
 
 1. 下载最新版本，地址请前往[Dreamacro/clash premium](https://github.com/Dreamacro/clash/releases/tag/premium)，根据架构替换最新版本下载地址（以下以armv8架构为例）
 ```bash
-wget -q https://github.com/Dreamacro/clash/releases/download/premium/clash-linux-armv8-2022.08.26.gz| bash
+wget -q https://github.com/Dreamacro/clash/releases/download/premium/clash-linux-armv8-2022.08.26.gz
 ```
 
 2. 解压（请根据下载的文件名进行替换）
