@@ -1,8 +1,7 @@
 # 群晖NAS部署clash透明代理
-* 可安装于ARM架构的群晖
-* 无需Docker或虚拟机
+* 本教程采用Tun模式，基于闭源版本的clash premium，如需开源版本clash的配置方法，请前往[clash-synology-iptables](https://github.com/412999826/clash-synology/tree/iptables-mode)
+* 可安装于ARM架构的群晖，无需Docker或虚拟机
 * 可以由群晖开启DHCP服务器，并将网关和DNS指向群晖，即可实现局域网设备的自动全局代理
-* 因为群晖为定制版Linux，代理UDP流量需要补齐缺失的iptables模块
 * 因为后续clash配置文件可能经常需要修改，建议将配置文件目录定义在`共享文件夹`目录下
 
 安装过程需开启群晖的SSH功能，并通过`sudo -i`切换到root用户
@@ -13,20 +12,20 @@
 
 ## 安装clash
 
-1. 下载最新版本，地址请前往[Dreamacro/clash](https://github.com/Dreamacro/clash/releases)，根据架构替换最新版本下载地址（以下以armv8架构为例）
+1. 下载最新版本，地址请前往[Dreamacro/clash premium](https://github.com/Dreamacro/clash/releases/tag/premium)，根据架构替换最新版本下载地址（以下以armv8架构为例）
 ```bash
-wget -q https://github.com/Dreamacro/clash/releases/download/v1.10.0/clash-linux-armv8-v1.10.0.gz
+wget -q https://github.com/Dreamacro/clash/releases/download/premium/clash-linux-armv8-2022.08.26.gz
 ```
 
 2. 解压（请根据下载的文件名进行替换）
 ```bash
-gzip -d clash-linux-armv8-v1.10.0.gz
+gzip -d clash-linux-armv8-2022.08.26.gz
 ```
 
 3. 安装到系统 PATH（请根据下载的文件名进行替换）
 ```bash
-chmod +x clash-linux-armv8-v1.10.0
-mv clash-linux-armv8-v1.10.0 /usr/bin/clash
+chmod +x clash-linux-armv8-2022.08.26
+mv clash-linux-armv8-2022.08.26 /usr/bin/clash
 ```
 
 ## 通过脚本安装clash（测试）
@@ -84,6 +83,15 @@ dns:
   fallback:
     - tls://8.8.4.4:853
     - https://dns.pub/dns-query
+# tun模式设置
+tun:
+  enable: true
+  stack: system # or gvisor
+  dns-hijack:
+    - any:53
+    - tcp://any:53
+  auto-route: true
+  auto-detect-interface: true
 # 域名劫持设置
 hosts:
   #clash.dev: 192.168.1.1
@@ -138,63 +146,16 @@ systemctl enable clash
 ```bash
 #!/bin/bash
 
-# 加载内核
-modprobe ip_tables
+# 启用TUN
+mkdir -p /dev/net
+mknod /dev/net/tun c 10 200
+chmod 600 /dev/net/tun
 
-# 定义环境变量
-proxy_port=7892                  #clash 代理端口
-fake_ip_range='198.18.0.0/16'    #clash fake-ip范围
-dns_port=1053                    #clash dns监听端口
-
-# 启用ipv4 forward
-sysctl -w net.ipv4.ip_forward=1
-
-# 配置tcp透明代理
-## 在nat表中新建clash规则链
-iptables -t nat -N clash
-## 排除环形地址与保留地址
-iptables -t nat -A clash -d 0.0.0.0/8 -j RETURN
-iptables -t nat -A clash -d 10.0.0.0/8 -j RETURN
-iptables -t nat -A clash -d 127.0.0.0/8 -j RETURN
-iptables -t nat -A clash -d 169.254.0.0/16 -j RETURN
-iptables -t nat -A clash -d 172.16.0.0/12 -j RETURN
-iptables -t nat -A clash -d 192.168.0.0/16 -j RETURN
-iptables -t nat -A clash -d 224.0.0.0/4 -j RETURN
-iptables -t nat -A clash -d 240.0.0.0/4 -j RETURN
-## 重定向tcp流量到clash 代理端口
-iptables -t nat -A clash -p tcp -j REDIRECT --to-port "$proxy_port"
-## 拦截外部tcp数据并交给clash规则链处理
-iptables -t nat -A PREROUTING -p tcp -j clash
-## fake-ip tcp规则添加
-iptables -t nat -A OUTPUT -p tcp -d "$fake_ip_range" -j REDIRECT --to-port "$proxy_port"
+# 启用CLASH
+systemctl start clash
 
 # DNS 相关配置
-## 拦截外部upd的53端口流量交给clash_dns规则链处理
-iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-port "$dns_port"
-
-# 修复 ICMP(ping)
-# 这并不能保证 ping 结果有效(clash 不支持转发 ICMP), 只是让它有返回结果而已
-# --to-destination 设置为一个可达的地址即可
-iptables -t nat -A PREROUTING -p icmp -d "$fake_ip_range" -j DNAT --to-destination 192.168.1.1
-
-# 配置udp透明代理
-
-#insmod /lib/modules/nf_defrag_ipv6.ko
-#insmod /lib/modules/xt_TPROXY.ko
-#ip rule add fwmark 1 table 100
-#ip route add local default dev lo table 100
-#iptables -t mangle -N clash
-#iptables -t mangle -A clash -d 0.0.0.0/8 -j RETURN
-#iptables -t mangle -A clash -d 10.0.0.0/8 -j RETURN
-#iptables -t mangle -A clash -d 127.0.0.0/8 -j RETURN
-#iptables -t mangle -A clash -d 169.254.0.0/16 -j RETURN
-#iptables -t mangle -A clash -d 172.16.0.0/12 -j RETURN
-#iptables -t mangle -A clash -d 192.168.0.0/16 -j RETURN
-#iptables -t mangle -A clash -d 224.0.0.0/4 -j RETURN
-#iptables -t mangle -A clash -d 240.0.0.0/4 -j RETURN
-#iptables -t mangle -A clash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark 1
-#iptables -t mangle -A PREROUTING -p udp -j clash
-#iptables -t mangle -A OUTPUT -p udp -d "$fake_ip_range" -j MARK --set-mark 1
+iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-port 1053
 ```
 
 ## 一键更新clash脚本（测试）
