@@ -31,7 +31,7 @@ mv clash-linux-armv8-2022.08.26 /usr/bin/clash
 ## 通过脚本安装clash（测试）
 仅在DS118/DS218机型（armv8架构）测试通过，
 ```bash
-wget -qO- https://github.com/412999826/clash-synology/raw/main/install.sh| bash
+wget -qO- https://github.com/412999826/clash-synology/raw/tun-mode/install.sh| bash
 ```
 
 ## 创建配置文件及安装控制面板
@@ -161,5 +161,5 @@ iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-port 1053
 ## 一键更新clash脚本（测试）
 仅在DS118/DS218机型（armv8架构）测试通过，
 ```bash
-wget -qO- https://github.com/412999826/clash-synology/raw/main/autoupdate.sh| bash
+wget -qO- https://github.com/412999826/clash-synology/raw/tun-mode/autoupdate.sh| bash
 ```
