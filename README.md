@@ -156,6 +156,8 @@ chmod 600 /dev/net/tun
 # 启用clash
 systemctl start clash
 
+sleep 20
+
 # dns 相关配置
 iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-port 1053
 ```
