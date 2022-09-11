@@ -13,7 +13,7 @@ arch=`uname -m`
 [ $arch == 'armv7' ] && board_id='armv7';
 [ $arch == 'armv5' ] && board_id='armv5';
 
-wget -q https://github.com/Dreamacro/clash/releases/download/$latest_release_tag/clash-linux-$board_id-$latest_release_tag.gz
+wget -q https://github.com/Dreamacro/clash/releases/download/premium/clash-linux-$board_id-$latest_release_tag.gz
 gzip -d clash-linux-$board_id-$latest_release_tag.gz
 chmod +x clash-linux-$board_id-$latest_release_tag
 systemctl stop clash
