@@ -144,15 +144,18 @@ systemctl start clash
 ```bash
 #!/bin/bash
 
-# 启用TUN
+# 启用ipv4 forward
+sysctl -w net.ipv4.ip_forward=1
+
+# 启用tun
 mkdir -p /dev/net
 mknod /dev/net/tun c 10 200
 chmod 600 /dev/net/tun
 
-# 启用CLASH
+# 启用clash
 systemctl start clash
 
-# DNS 相关配置
+# dns 相关配置
 iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-port 1053
 ```
 
