@@ -1,7 +1,6 @@
-# 群晖NAS部署clash透明代理(tun mode)
+# 群晖NAS部署clash透明代理(tun-mixed mode)
 * 本教程基于闭源的clash premium，如需开源clash的配置方法，请前往[clash-redir-tproxy-mode](https://github.com/412999826/clash-synology/tree/iptables-mode)
-* 本教程采用tun混合模式，即tcp-redir，udp-tun
-* tun模式可以代理udp流量，且无需编译群晖缺失的组件
+* tun模式可以代理udp流量，但是代理tcp性能相对较差，故采用tun混合模式，即tcp-redir，udp-tun
 * 可安装于arm架构的群晖，无需docker或虚拟机
 * 可以由群晖开启dhcp服务器，并将网关和dns指向群晖，即可实现局域网设备的自动全局代理
 * 因为后续clash配置文件可能经常需要修改，建议将配置文件目录定义在`共享文件夹`目录下
