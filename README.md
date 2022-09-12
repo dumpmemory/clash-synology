@@ -1,8 +1,9 @@
 # 群晖NAS部署clash透明代理(tun mode)
-* 本教程采用tun模式，基于闭源的clash premium，如需开源clash的配置方法，请前往[clash-synology-iptables](https://github.com/412999826/clash-synology/tree/iptables-mode)
-* tun模式可以代理udp流量，而且无需编译群晖缺失的组件及复杂的iptables配置
-* 可安装于ARM架构的群晖，无需Docker或虚拟机
-* 可以由群晖开启DHCP服务器，并将网关和DNS指向群晖，即可实现局域网设备的自动全局代理
+* 本教程基于闭源的clash premium，如需开源clash的配置方法，请前往[clash-synology-iptables](https://github.com/412999826/clash-synology/tree/iptables-mode)
+* 本教程采用tun混合模式，即tcp-redir，udp-tun
+* tun模式可以代理udp流量，且无需编译群晖缺失的组件
+* 可安装于arm架构的群晖，无需docker或虚拟机
+* 可以由群晖开启dhcp服务器，并将网关和dns指向群晖，即可实现局域网设备的自动全局代理
 * 因为后续clash配置文件可能经常需要修改，建议将配置文件目录定义在`共享文件夹`目录下
 
 安装过程需开启群晖的SSH功能，并通过`sudo -i`切换到root用户
@@ -148,6 +149,10 @@ systemctl start clash
 # 启用ipv4 forward
 sysctl -w net.ipv4.ip_forward=1
 
+# 定义环境变量
+proxy_port=7892                  #clash 代理端口
+dns_port=1053                    #clash dns监听端口
+
 # 启用tun
 mkdir -p /dev/net
 mknod /dev/net/tun c 10 200
@@ -156,7 +161,22 @@ chmod 600 /dev/net/tun
 # 启用clash
 systemctl start clash
 
-sleep 20
+# 配置tcp透明代理
+## 在nat表中新建clash规则链
+iptables -t nat -N clash
+## 排除环形地址与保留地址
+iptables -t nat -A clash -d 0.0.0.0/8 -j RETURN
+iptables -t nat -A clash -d 10.0.0.0/8 -j RETURN
+iptables -t nat -A clash -d 127.0.0.0/8 -j RETURN
+iptables -t nat -A clash -d 169.254.0.0/16 -j RETURN
+iptables -t nat -A clash -d 172.16.0.0/12 -j RETURN
+iptables -t nat -A clash -d 192.168.0.0/16 -j RETURN
+iptables -t nat -A clash -d 224.0.0.0/4 -j RETURN
+iptables -t nat -A clash -d 240.0.0.0/4 -j RETURN
+## 重定向tcp流量到clash 代理端口
+iptables -t nat -A clash -p tcp -j REDIRECT --to-port "$proxy_port"
+## 拦截外部tcp数据并交给clash规则链处理
+iptables -t nat -A PREROUTING -p tcp -j clash
 
 # dns 相关配置
 iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-port 1053
