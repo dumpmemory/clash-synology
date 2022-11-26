@@ -8,7 +8,7 @@ get_latest_release() {
 
 latest_release_tag=`get_latest_release`
 arch=`uname -m`
-[ $arch == 'x86_64' ] && board_id='amd64';
+[ $arch == 'x86_64' ] && board_id='arm64';
 [ $arch == 'aarch64' ] && board_id='armv8';
 [ $arch == 'armv7' ] && board_id='armv7';
 [ $arch == 'armv5' ] && board_id='armv5';
