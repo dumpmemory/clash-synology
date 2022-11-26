@@ -91,6 +91,7 @@ tun:
   dns-hijack:
     - any:53
     - tcp://any:53
+  auto-redir: true
   auto-route: true
   auto-detect-interface: true
 # 域名劫持设置
