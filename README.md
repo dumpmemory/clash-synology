@@ -15,18 +15,18 @@
 
 1. 下载最新版本，地址请前往[Dreamacro/clash premium](https://github.com/Dreamacro/clash/releases/tag/premium)，根据架构替换最新版本下载地址（以下以armv8架构为例）
 ```bash
-wget -q https://github.com/Dreamacro/clash/releases/download/premium/clash-linux-armv8-2022.08.26.gz
+wget -q https://github.com/Dreamacro/clash/releases/download/premium/clash-linux-arm64-2022.11.25.gz
 ```
 
 2. 解压（请根据下载的文件名进行替换）
 ```bash
-gzip -d clash-linux-armv8-2022.08.26.gz
+gzip -d clash-linux-arm64-2022.11.25.gz
 ```
 
 3. 安装到系统 PATH（请根据下载的文件名进行替换）
 ```bash
-chmod +x clash-linux-armv8-2022.08.26
-mv clash-linux-armv8-2022.08.26 /usr/bin/clash
+chmod +x clash-linux-arm64-2022.11.25
+mv clash-linux-arm64-2022.11.25 /usr/bin/clash
 ```
 
 ## 通过脚本安装clash（测试）
@@ -90,9 +90,6 @@ tun:
   stack: system # or gvisor
   dns-hijack:
     - any:53
-    - tcp://any:53
-  auto-redir: true
-  auto-route: true
   auto-detect-interface: true
 # 域名劫持设置
 hosts:
