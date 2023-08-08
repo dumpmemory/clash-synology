@@ -90,7 +90,10 @@ tun:
   stack: system # or gvisor
   dns-hijack:
     - any:53
-  auto-detect-interface: true
+#  最新版本已不支持自动检测网卡
+#  auto-detect-interface: true
+#  请自行查询出口网卡
+  interface-name: eth0
 # 域名劫持设置
 hosts:
   #clash.dev: 192.168.1.1
